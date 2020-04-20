@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <title>KNV PayPal™ Matcher</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}">
+  </head>
+  <body>
+    <h1>KNV PayPal™ Matcher</h1>
+    <form method=post enctype=multipart/form-data>
+      <p>
+        <label>Payments</label><br>
+        <input type=file multiple name=payments>
+      </p>
+      <p>
+        <label>Orders</label><br>
+        <input type=file multiple name=orders>
+      </p>
+      <p>
+        <label>OrderInfo</label><br>
+        <input type=file multiple name=infos>
+      </p>
+      <p>
+        <label>Invoices</label><br>
+        <input type=file multiple name=invoices>
+      </p>
+      <br>
+      <input type=submit value=Upload>
+    </form>
+  </body>
+</html>
