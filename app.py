@@ -1,13 +1,12 @@
 #!/usr/bin/env python3.6
 # ~*~ coding=utf-8 ~*~
 
-import os
 from io import StringIO, BytesIO
 from zipfile import ZipFile, ZipInfo
 
-from flask import Flask, request, redirect, url_for, render_template, send_file
+from flask import Flask, request, render_template, send_file
 from knv_pypal import match_data
-from pandas import DataFrame, read_csv
+from pandas import DataFrame
 
 from utils import load_data, match_pdf, group_data
 
@@ -17,20 +16,25 @@ app = Flask(__name__)
 # Limit upload size to 8 MB
 app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
 
-ALLOWED_EXTENSIONS = {'pdf', 'csv'}
+# ALLOWED_EXTENSIONS = {'pdf', 'csv'}
 
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+# def allowed_file(filename):
+#     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        # TODO: Fix this
-        # if 'file' not in request.files:
-        #     print('No file attached in request')
-        #     return redirect(request.url)
+        # Check if all fields
+        for input_field in ['payments', 'orders', 'infos']:
+            if request.files[input_field].mimetype != 'text/csv':
+                print()
+                return render_template('index.html', message='Keine Datei im Feld: "' + input_field + '"!')
+
+        if request.files['invoices'].mimetype != 'application/zip':
+            print()
+            return render_template('index.html', message='Keine Datei im Feld "Rechnungen" !')
 
         # Load CSV data
         # (1) Single sources
@@ -38,14 +42,15 @@ def index():
         order_data = load_data(request.files.getlist('orders'))
         info_data = load_data(request.files.getlist('infos'))
         # (2) Matched sources
-        matched_data = knv_pypal.match_data(payment_data, order_data, info_data)
+        matched_data = match_data(payment_data, order_data, info_data)
 
         # Load PDF data
         invoices = {}
 
-        for invoice in request.files.getlist('invoices'):
-            number = invoice.filename.split('-')[2][:-4]
-            invoices[number] = invoice
+        for archive in request.files.getlist('invoices'):
+            # https://stackoverflow.com/a/10909016
+            archive = ZipFile(archive)
+            invoices.update({invoice.split('-')[2][:-4]: BytesIO((archive.read(invoice))) for invoice in archive.namelist() if invoice[:-4] == '.pdf'})
 
         results = []
 
