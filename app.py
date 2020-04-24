@@ -1,7 +1,10 @@
 #!/usr/bin/env python3.6
 # ~*~ coding=utf-8 ~*~
 
+import os
 from io import StringIO, BytesIO
+from logging import INFO as LOG_INFO
+from logging.handlers import RotatingFileHandler
 from zipfile import ZipFile, ZipInfo
 
 from flask import Flask, request, render_template, send_file
@@ -11,10 +14,14 @@ from pandas import DataFrame
 from utils import load_data, match_pdf, group_data
 
 
+# Configure app
 app = Flask(__name__)
 
 # Limit upload size to 8 MB
 app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
+
+# Set directory for logs
+app.config['LOG_DIR'] = 'logs'
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -101,5 +108,20 @@ def index():
     return render_template('index.html')
 
 
-if __name__ == "__main__":
+@app.route('/logs')
+def logs():
+    return abort(403)
+
+
+if __name__ == '__main__':
+    # Handle logging
+    # (1) Init log handler
+    log_handler = RotatingFileHandler(os.path.join(app.config['LOG_DIR'], 'info.log'), maxBytes=1000, backupCount=1)
+    # (2) Set log level for handler + app
+    log_handler.setLevel(LOG_INFO)
+    app.logger.setLevel(LOG_INFO)
+    # (3) Add log handler to app
+    app.logger.addHandler(log_handler)
+
+    # Run application
     app.run(host='0.0.0.0', port=1024)
