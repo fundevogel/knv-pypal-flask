@@ -113,6 +113,11 @@ def logs():
     return abort(403)
 
 
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('404.html')
+
+
 if __name__ == '__main__':
     # Handle logging
     # (1) Init log handler
