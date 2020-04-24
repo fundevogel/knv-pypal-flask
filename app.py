@@ -16,12 +16,6 @@ app = Flask(__name__)
 # Limit upload size to 8 MB
 app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
 
-# ALLOWED_EXTENSIONS = {'pdf', 'csv'}
-
-
-# def allowed_file(filename):
-#     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -29,12 +23,10 @@ def index():
         # Check if all fields
         for input_field in ['payments', 'orders', 'infos']:
             if request.files[input_field].mimetype != 'text/csv':
-                print()
-                return render_template('index.html', message='Keine Datei im Feld: "' + input_field + '"!')
+                return render_template('index.html', message='Keine gültige Datei im Feld: "' + input_field + '"!')
 
         if request.files['invoices'].mimetype != 'application/zip':
-            print()
-            return render_template('index.html', message='Keine Datei im Feld "Rechnungen" !')
+            return render_template('index.html', message='Keine gültige Datei im Feld "Rechnungen" !')
 
         # Load CSV data
         # (1) Single sources
@@ -110,4 +102,4 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=8080)
+    app.run(host='0.0.0.0', port=1024)
